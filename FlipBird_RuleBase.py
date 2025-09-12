@@ -1,11 +1,10 @@
-
 import pygame, random, sys
 
 # Initialisation
 pygame.init()
 LARGEUR, HAUTEUR = 400, 600
 ECRAN = pygame.display.set_mode((LARGEUR, HAUTEUR))
-pygame.display.set_caption("Flappy Bird - Manuel / Auto")
+pygame.display.set_caption("Flappy Bird - Manuel / Auto Rule-Based")
 
 # Couleurs
 BLANC = (255, 255, 255)
@@ -57,14 +56,32 @@ def verifier_collision():
                 return True
     return False
 
+# === AUTOMATISME PAR RÈGLES FIXES ===
 def bot_action():
+    """
+    Rule-Based amélioré :
+    - Le bot vise le centre du trou
+    - S'il est trop bas par rapport au centre → saute
+    - S'il est trop haut → ne fait rien (descend avec la gravité)
+    """
     if not tuyaux:
         return False
+
+    # Récupère le prochain tuyau
     prochain = tuyaux[0]
     if oiseau_x > prochain["x"] + largeur_tuyau and len(tuyaux) > 1:
         prochain = tuyaux[1]
+
     centre_trou = (prochain["haut"] + prochain["bas"]) // 2
-    return oiseau_y > centre_trou
+
+    # marge de tolérance (évite que l’oiseau saute trop souvent)
+    tolerance = 20  
+
+    # Si l’oiseau est en dessous du centre du trou → sauter
+    if oiseau_y > centre_trou + tolerance:
+        return True
+    # Sinon → rien faire (laisser descendre)
+    return False
 
 def afficher_bouton(txt, x, y, w, h, couleur, couleur_hover, action=None):
     """Affiche un bouton cliquable"""
@@ -112,7 +129,7 @@ while True:
         ECRAN.blit(titre, (LARGEUR//2 - titre.get_width()//2, 150))
 
         choix1 = afficher_bouton("Mode Manuel", 120, 250, 160, 50, ROUGE, (255, 50, 50), False)
-        choix2 = afficher_bouton("Mode Auto", 120, 350, 160, 50, VERT, (0, 255, 0), True)
+        choix2 = afficher_bouton("Mode Auto R-B", 120, 350, 160, 50, VERT, (0, 255, 0), True)
 
         if choix1 is not None:
             mode_auto = choix1
@@ -152,9 +169,9 @@ while True:
     texte = font.render(f"Score : {score}", True, BLANC)
     ECRAN.blit(texte, (10, 10))
 
-    mode_txt = "AUTO" if mode_auto else "MANUEL"
+    mode_txt = "AUTO R-B" if mode_auto else "MANUEL"
     texte2 = font.render(f"Mode : {mode_txt}", True, NOIR)
-    ECRAN.blit(texte2, (LARGEUR-150, 10))
+    ECRAN.blit(texte2, (LARGEUR-200, 10))
 
     if not en_jeu:
         msg = font.render("GAME OVER", True, ROUGE)
@@ -167,7 +184,8 @@ while True:
         if action1 == "rejouer":
             reset_jeu()
         if action2 == "menu":
-            mode_auto = None  # retour au menu principal
+            mode_auto = None  # retour menu
 
     pygame.display.flip()
     clock.tick(FPS)
+
