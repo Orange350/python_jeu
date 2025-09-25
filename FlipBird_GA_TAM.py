@@ -14,7 +14,7 @@ ECART = 150
 RAYON = 12
 
 # === Paramètres GA ===
-POP_SIZE = 20
+POP_SIZE = 30
 MUTATION_RATE = 0.2
 
 pygame.init()
@@ -204,54 +204,104 @@ def play_manual():
         elif choice == "menu": return "menu"
         elif choice == "quit": return "quit"
 
-# === Jeu GA ===
-def play_ga():
-    generation = 0
-    population = [Bot() for _ in range(POP_SIZE)]
-    tuyaux = [creer_tuyau()]
-    plt.ion()
-    plt.figure(figsize=(6,4))
+# === Menu post-stop GA ===
+def ga_post_stop_menu():
+    restart_btn = pygame.Rect(150, 250, 200, 50)
+    continue_btn = pygame.Rect(150, 330, 200, 50)
+    menu_btn = pygame.Rect(150, 410, 200, 50)
     while True:
-        generation += 1
-        while any(bot.alive for bot in population):
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT: plt.ioff(); plt.show(); return "quit"
-            for t in tuyaux: t["x"] -= VITESSE_TUYAUX
-            if tuyaux[0]["x"] < -LARGEUR_TUYAU: tuyaux.pop(0)
-            if tuyaux[-1]["x"] < LARGEUR - 200: tuyaux.append(creer_tuyau())
-            for t in tuyaux:
-                if not t["passed"] and t["x"] + LARGEUR_TUYAU < 60:
-                    t["passed"] = True
-                    for bot in population:
-                        if bot.alive: bot.pipes_passed += 1
-            for bot in population: bot.update(tuyaux)
-            Ecran.fill((135,206,250))
-            best_score = max(bot.pipes_passed for bot in population)
-            for t in tuyaux:
-                pygame.draw.rect(Ecran, (0,200,0), (t["x"], 0, LARGEUR_TUYAU, t["haut"]))
-                pygame.draw.rect(Ecran, (0,200,0), (t["x"], t["bas"], LARGEUR_TUYAU, HAUTEUR-t["bas"]))
-            for bot in population: bot.draw(Ecran)
-            txt = font.render(f"Gen {generation} | Best {best_score}", True, (0,0,0))
-            Ecran.blit(txt, (10, 10))
-            pygame.display.flip()
-            clock.tick(60)
-        population = next_generation(population, generation)
-        update_graph_ga_live()
-        tuyaux = [creer_tuyau()]
+        Ecran.fill((150, 50, 50))
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: return "quit"
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if restart_btn.collidepoint(event.pos): return "restart"
+                if continue_btn.collidepoint(event.pos): return "continue"
+                if menu_btn.collidepoint(event.pos): return "menu"
+        draw_game_buttons([(restart_btn,"Restart"), (continue_btn,"Continuer"), (menu_btn,"Menu")])
+        pygame.display.flip()
+        clock.tick(30)
 
-# === Menu Principal ===
+# === Jeu GA avec Stop/Menu et post-stop menu ===
+def play_ga():
+    while True:
+        population = [Bot() for _ in range(POP_SIZE)]
+        tuyaux = [creer_tuyau()]
+        plt.ion()
+        plt.figure(figsize=(6,4))
+        generation = 0
+        stop_btn = pygame.Rect(400, 10, 80, 30)
+        menu_btn = pygame.Rect(500, 10, 80, 30)
+
+        while True:
+            generation += 1
+            while any(bot.alive for bot in population):
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT: plt.ioff(); plt.show(); return "quit"
+                    if event.type == pygame.MOUSEBUTTONDOWN:
+                        if stop_btn.collidepoint(event.pos):
+                            choice = ga_post_stop_menu()
+                            if choice == "restart":
+                                # Restart GA depuis zéro
+                                generation = 0
+                                population = [Bot() for _ in range(POP_SIZE)]
+                                tuyaux = [creer_tuyau()]
+                                history_ga.clear()
+                                plt.clf()
+                                break
+                            elif choice == "continue":
+                                # Continuer la partie en cours
+                                continue
+                            elif choice == "menu":
+                                return "menu"
+                        if menu_btn.collidepoint(event.pos): return "menu"
+
+                # Déplacement tuyaux
+                for t in tuyaux: t["x"] -= VITESSE_TUYAUX
+                if tuyaux[0]["x"] < -LARGEUR_TUYAU: tuyaux.pop(0)
+                if tuyaux[-1]["x"] < LARGEUR - 200: tuyaux.append(creer_tuyau())
+
+                # Calcul score
+                for t in tuyaux:
+                    if not t["passed"] and t["x"] + LARGEUR_TUYAU < 60:
+                        t["passed"] = True
+                        for bot in population:
+                            if bot.alive: bot.pipes_passed += 1
+
+                for bot in population: bot.update(tuyaux)
+
+                # Dessin
+                Ecran.fill((135,206,250))
+                best_score = max(bot.pipes_passed for bot in population)
+                for t in tuyaux:
+                    pygame.draw.rect(Ecran, (0,200,0), (t["x"], 0, LARGEUR_TUYAU, t["haut"]))
+                    pygame.draw.rect(Ecran, (0,200,0), (t["x"], t["bas"], LARGEUR_TUYAU, HAUTEUR-t["bas"]))
+                for bot in population: bot.draw(Ecran)
+                txt = font.render(f"Gen {generation} | Best {best_score}", True, (0,0,0))
+                Ecran.blit(txt, (10, 10))
+                pygame.draw.rect(Ecran, (200,200,200), stop_btn)
+                pygame.draw.rect(Ecran, (200,200,200), menu_btn)
+                Ecran.blit(font.render("Stop", True, (0,0,0)), (stop_btn.x+10, stop_btn.y+5))
+                Ecran.blit(font.render("Menu", True, (0,0,0)), (menu_btn.x+10, menu_btn.y+5))
+                pygame.display.flip()
+                clock.tick(60)
+
+            population = next_generation(population, generation)
+            update_graph_ga_live()
+            tuyaux = [creer_tuyau()]
+
+# === Menu principal ===
 def menu():
     manu_btn = pygame.Rect(200, 200, 200, 50)
     ga_btn = pygame.Rect(200, 300, 200, 50)
     quit_btn = pygame.Rect(200, 400, 200, 50)
     while True:
-        Ecran.fill((100,150,250))
         for event in pygame.event.get():
             if event.type == pygame.QUIT: return "quit"
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if manu_btn.collidepoint(event.pos): return "manual"
                 if ga_btn.collidepoint(event.pos): return "ga"
                 if quit_btn.collidepoint(event.pos): return "quit"
+        Ecran.fill((100,150,250))
         draw_game_buttons([(manu_btn,"Mode Manuel"), (ga_btn,"Mode GA"), (quit_btn,"Quit")])
         pygame.display.flip()
         clock.tick(30)
@@ -261,9 +311,10 @@ if __name__ == "__main__":
     mode = "menu"
     while True:
         if mode=="menu": mode = menu()
-        elif mode=="manual":
-            if manual_start_menu() == "quit": break
-            mode = play_manual()
+        elif mode=="manual": 
+            start = manual_start_menu()
+            if start=="menu": mode="menu"
+            else: mode = play_manual()
         elif mode=="ga": mode = play_ga()
         elif mode=="quit": break
     pygame.quit()
