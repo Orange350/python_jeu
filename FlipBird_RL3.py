@@ -10,6 +10,7 @@ from collections import deque
 import numpy as np
 
 # Attempt to import torch (PyTorch)
+
 try:
     import torch
     import torch.nn as nn
