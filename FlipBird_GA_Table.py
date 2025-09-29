@@ -27,7 +27,7 @@ font = pygame.font.SysFont("Arial", 18, bold=True)
 history = []  # (gen, best, avg)
 
 # === Fichier CSV ===
-CSV_FILE = "birds_evolution.csv"
+CSV_FILE = "birds_evolution_table.csv"
 
 # Création du fichier CSV avec en-tête si absent
 if not os.path.exists(CSV_FILE):
