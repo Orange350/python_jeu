@@ -41,6 +41,9 @@ BROWN = (100,50,10) #Marron
 POP_SIZE = 30   
 MUTATION_RATE = 0.2
 
+# =============================================================================
+#==== Initialisation =====
+# =============================================================================
 pygame.init()
 pygame.mixer.init()  # Initialisation audio
 
@@ -71,7 +74,6 @@ except Exception as e:
 # =============================================================================
 #Image pour le oiseau
 # =============================================================================
-
 try:
     bird_img = pygame.image.load("Images/Bird rose.png").convert_alpha()
     bird_img = pygame.transform.scale(bird_img, (40, 30))  # ajuste taille
@@ -124,9 +126,13 @@ class Bot:
         self.threshold = threshold if threshold is not None else random.uniform(-50, 50)
 
     def update(self, tuyaux):
+       # if self.x < 60:
+        #    self.x  = self.x  - self.v
+
         if not self.alive: return
         self.v += GRAVITE
         self.y += self.v
+    #    self.y  = self.y  +  self.v
         if tuyaux:
             p = tuyaux[0]
             centre = (p["haut"] + p["bas"]) / 2
@@ -275,12 +281,14 @@ def manual_start_menu():
         else:
             Ecran.fill((150, 200, 250))
 
+        draw_text("Mode Manu", 60, LARGEUR//2, 120, (255, 215, 0)) #Test doré
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT: return "quit"
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if start_btn.collidepoint(event.pos): return "start"
                 if menu_btn.collidepoint(event.pos): return "menu"
-        draw_game_buttons([(start_btn,"Start"), (menu_btn,"Menu")])
+        draw_game_buttons([(start_btn,"Start Mode Manu"), (menu_btn,"Menu Principal")])
         pygame.display.flip()
         clock.tick(30)
 
@@ -293,13 +301,14 @@ def manual_game_over_menu():
     graph_btn = pygame.Rect(150, 410, 200, 50)
     while True:
         Ecran.fill((150, 50, 50))
+        draw_text("Mode Manu", 60, LARGEUR//2.2, 170, (255, 215, 0)) #Test doré
         for event in pygame.event.get():
             if event.type == pygame.QUIT: return "quit"
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if restart_btn.collidepoint(event.pos): return "restart"
                 if menu_btn.collidepoint(event.pos): return "menu"
                 if graph_btn.collidepoint(event.pos): update_graph_manu()
-        draw_game_buttons([(restart_btn,"Restart"), (menu_btn,"Menu"), (graph_btn,"Graphique")])
+        draw_game_buttons([(restart_btn,"Restart"), (menu_btn,"Menu Principal"), (graph_btn,"Graphique")])
         pygame.display.flip()
         clock.tick(30)
 
@@ -363,6 +372,7 @@ def play_manual():
             else:
                 pygame.draw.circle(Ecran, (255,220,0), (o_x, int(o_y)), RAYON)
 
+            draw_text("Mode Manuel", 30, LARGEUR//2, 20, (0, 0, 0)) #Test noir
             score_txt = font.render(f"Score: {score}", True, (BLACK)) #Noir = (0,0,0)
             Ecran.blit(score_txt, (10, 10))
             pygame.display.flip()
@@ -392,13 +402,15 @@ def ga_post_stop_menu():
     menu_btn = pygame.Rect(150, 410, 200, 50)
     while True:
         Ecran.fill((150, 50, 50))
+        #draw_text("Mode Auto GA", 30, LARGEUR//2, 180, (0,0,0)) #Noir (0,0,0)
+        draw_text("Mode Auto GA", 60, LARGEUR//2, 120, (255, 215, 0)) #Test doré 
         for event in pygame.event.get():
             if event.type == pygame.QUIT: return "quit"
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if restart_btn.collidepoint(event.pos): return "restart"
                 if continue_btn.collidepoint(event.pos): return "continue"
                 if menu_btn.collidepoint(event.pos): return "menu"
-        draw_game_buttons([(restart_btn,"Restart"), (continue_btn,"Continuer"), (menu_btn,"Menu")])
+        draw_game_buttons([(restart_btn,"Restart"), (continue_btn,"Continuer"), (menu_btn,"Menu Principal")])
         pygame.display.flip()
         clock.tick(30)
 
@@ -479,12 +491,13 @@ def play_ga():
 
                 for bot in population: bot.draw(Ecran)
                 txt = font.render(f"Gen {generation} | Alive {sum(b.alive for b in population)} |  Score {best_score}", True, (BLACK)) #Noir = (0,0,0)
+                
                 Ecran.blit(txt, (10, 10))
 
                 pygame.draw.rect(Ecran, (200,200,200), stop_btn)
                 pygame.draw.rect(Ecran, (200,200,200), menu_btn)
                 Ecran.blit(font.render("Stop", True, (BLACK)), (stop_btn.x+10, stop_btn.y+5)) #Noir = (0,0,0)
-                Ecran.blit(font.render("Menu", True, (BLACK)), (menu_btn.x+10, menu_btn.y+5)) #Noir = (0,0,0)
+                Ecran.blit(font.render("Menu P", True, (BLACK)), (menu_btn.x+10, menu_btn.y+5)) #Noir = (0,0,0)
                 pygame.display.flip()
                 clock.tick(60)
 
@@ -536,7 +549,7 @@ def menu():
         draw_text("FLIPBIRD", 60, LARGEUR//2, 120, (255, 215, 0))      # Texte doré
 
         # Phrase d'instruction
-        draw_text("Choisissez un mode", 30, LARGEUR//2, 180, (0,0,0)) #Noir (0,0,0)
+        draw_text("Choisissez un mode", 30, LARGEUR//2, 180, (BLACK)) #Noir (0,0,0)
 
         #== Boutons ===
         draw_game_buttons([
