@@ -402,7 +402,6 @@ def ga_post_stop_menu():
     menu_btn = pygame.Rect(150, 410, 200, 50)
     while True:
         Ecran.fill((150, 50, 50))
-        #draw_text("Mode Auto GA", 30, LARGEUR//2, 180, (0,0,0)) #Noir (0,0,0)
         draw_text("Mode Auto GA", 60, LARGEUR//2, 120, (255, 215, 0)) #Test doré 
         for event in pygame.event.get():
             if event.type == pygame.QUIT: return "quit"
